@@ -1,7 +1,7 @@
 version: "3.4"
 
 services:
-  zookeper:
+  zookeeper:
     image: bitnami/zookeeper
     restart: always
     ports:
@@ -19,13 +19,13 @@ services:
     volumes:
       - kafka_data:/bitnami
     environment:
-      - KAFKA_ZOOKEEPER_CONNECT=zookeper:2181
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
       - KAFKA_LISTENERS=PLAINTEXT://:9092
     depends_on:
       - zookeeper
-  
+
   mongo-container:
     image: mongo
     restart: always
@@ -36,12 +36,30 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=root
-      - MONGO_INITDB_DATABASE=test
-      - MONGO_INITDB_USER=test
-      - MONGO_INITDB_PASSWORD=test
+
+  mysql-container:
+    image: mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data_container:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=techbankRoot
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=mysql-container
+    depends_on: 
+      - mysql-container
 
 volumes:
   mongodb_data_container:
+    driver: local
+  mysql_data_container:
     driver: local
   zookeeper_data:
     driver: local
@@ -49,6 +67,5 @@ volumes:
     driver: local
 
 networks:
-  default:
-    external:
-      name: techbankNet
+  techbankNet:
+    driver: bridge
